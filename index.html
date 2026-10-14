@@ -20,9 +20,26 @@ function beep(freq,duration,type='square',volume=.055,delay=0,endFreq=freq){
  gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
  o.connect(gain);gain.connect(audio.destination);o.start(t);o.stop(t+duration+.01);
 }
+// Three filtered noise transients give taco pickups a crisp cartoon bite.
+let crunchBuffer=null;
+function crunch(){
+ if(!soundOn||!audio||audio.state!=='running')return;
+ const rate=audio.sampleRate;
+ if(!crunchBuffer){crunchBuffer=audio.createBuffer(1,Math.ceil(rate*.12),rate);const data=crunchBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1}
+ const now=audio.currentTime;
+ for(const [offset,duration,volume,frequency] of [[0,.043,.105,2300],[.038,.045,.075,1700],[.084,.032,.045,3100]]){
+  const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain(),t=now+offset;
+  source.buffer=crunchBuffer;filter.type='highpass';filter.frequency.value=frequency;
+  gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(volume,t+.003);
+  gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  source.connect(filter);filter.connect(gain);gain.connect(audio.destination);
+  source.start(t);source.stop(t+duration);
+ }
+ beep(170,.085,'triangle',.035,0,110);
+}
 function sound(which){
  if(which==='start'){beep(330,.10,'square',.035);beep(440,.10,'square',.035,.11);beep(660,.17,'triangle',.055,.23)}
- else if(which==='taco'){if(performance.now()-lastPickupSound<65)return;lastPickupSound=performance.now();beep(390,.09,'triangle',.07,0,850);beep(880,.065,'square',.02,.04)}
+ else if(which==='taco'){if(performance.now()-lastPickupSound<65)return;lastPickupSound=performance.now();crunch()}
  else if(which==='broccoli'){beep(230,.19,'sawtooth',.045,0,95);beep(105,.12,'triangle',.05,.08,70)}
  else if(which==='miss'){beep(410,.21,'sine',.045,0,160)}
  else if(which==='best'){[523,659,784,1047].forEach((f,i)=>beep(f,.14,'triangle',.043,i*.105))}

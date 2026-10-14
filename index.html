@@ -39,7 +39,7 @@ function crunch(){
 }
 function sound(which){
  if(which==='start'){beep(330,.10,'square',.035);beep(440,.10,'square',.035,.11);beep(660,.17,'triangle',.055,.23)}
- else if(which==='taco'){if(performance.now()-lastPickupSound<65)return;lastPickupSound=performance.now();crunch()}
+ else if(which==='taco'){if(performance.now()-lastPickupSound<65)return;lastPickupSound=performance.now();try{const bite=new Audio('./taco-crunch-half.mp3');bite.volume=.72;bite.play().catch(()=>crunch())}catch{crunch()}}
  else if(which==='broccoli'){beep(230,.19,'sawtooth',.045,0,95);beep(105,.12,'triangle',.05,.08,70)}
  else if(which==='miss'){beep(410,.21,'sine',.045,0,160)}
  else if(which==='best'){[523,659,784,1047].forEach((f,i)=>beep(f,.14,'triangle',.043,i*.105))}
